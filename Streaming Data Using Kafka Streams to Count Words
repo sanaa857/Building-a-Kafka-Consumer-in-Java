@@ -1,69 +1,41 @@
 Description
-Kafka Connect can be used for a variety of databases, given it has a multitude of built-in connectors. In this hands-on lab, we set up Kafka Connect in a way allowing us to continuously stream data from a SQLite database directly into Kafka. This lab demonstrates how easy it is to use Kafka Connect to get data into Kafka for further analysis.
+Kafka Streams is a library enabling you to perform per-event processing of records. You can use it to process data as soon as it arrives, versus having to wait for a batch to occur. In this hands-on lab, we use Kafka Streams to stream some input data as plain-text and process it in real-time. With this, we can count the number of words from our input stream.
 
 Objectives
 Successfully complete this lab by achieving the following learning objectives:
 
-Start the Docker Container and Open a New Shell Inside
+Create the Input and Output Topic
 
-Run the following command to start the container and connect to it.
+Create the input topic named streams-plaintext-input.
 
-sudo docker run -ti --rm --name sqlite-demo --network host confluentinc/docker-demo-base:3.3.0
-Start Kafka
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic streams-plaintext-input
+Create the output topic named streams-wordcount-output.
 
-Start Kafka with the following command.
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic streams-wordcount-output
+Open a Kafka Console Producer
 
-cd /tmp
-confluent start
-Install SQLite3 and Create a New Database Table
+Open a Kafka console producer.
 
-Install SQLite3 with the following commands.
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-plaintext-input
+Type the three messages from the instructions.
 
-apt-get update
-apt-get install sqlite3
-Create a new database and table with the following command.
+>kafka streams is great
+>kafka processes messages in real time
+>kafka helps real information streams
+Open a Kafka Console Consumer
 
-sqlite3 test.db
+Open a Kafka console consumer using the default message formatter and the three properties given in the instructions.
 
-CREATE TABLE accounts (
-id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-name VARCHAR(255));
-Insert at Least Two New Values into Your New Database Table
+bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+--topic streams-wordcount-output \
+--from-beginning \
+--formatter kafka.tools.DefaultMessageFormatter \
+--property print.key=true \
+--property print.value=true \
+--property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+--property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer
+Run the Kafka Streams Application
 
-Insert the values into your database table using the following command.
+Use the kafka-run-class.sh command to run the WordCountDemo application.
 
-INSERT INTO accounts(name) VALUES('chad');
-INSERT INTO accounts(name) VALUES('terry');
-.quit
-Start Kafka Connect in Standalone Mode
-
-Use the following command to stop Kafka Connect from running in distributed mode.
-
-confluent stop connect
-Use the following commnand to start Kafka Connect in standalone mode.
-
-connect-standalone -daemon /etc/schema-registry/connect-avro-standalone.properties /etc/kafka-connect-jdbc/source-quickstart-sqlite.properties
-Verify the Connectors and Topic Have Been Created
-
-Check the logs to see that the connector is finished creating.
-
-cat /logs/connectStandalone.out | grep -i "finished"
-List the connectors.
-
-curl -s localhost:8083/connectors
-Describe the topic created by the connector.
-
-kafka-topics --list --zookeeper localhost:2181 | grep test-sqlite-jdbc
-Start a Kafka Consumer and Write New Data to the Database
-
-Start a new Console Consumer:
-
-kafka-avro-console-consumer --new-consumer --bootstrap-server localhost:9092 --topic test-sqlite-jdbc-accounts --from-beginning
-In a new terminal, write some new values to the database table.
-
-sudo docker exec -it sqlite-demo //bin//bash
-
-cd /tmp
-sqlite3 test.db
-INSERT INTO accounts(name) VALUES('william');
-.quit
+bin/kafka-run-class.sh org.apache.kafka.streams.examples.wordcount.WordCountDemo
