@@ -1,0 +1,16 @@
+Description
+Kafka topics are highly configurable, allowing you to customize their behavior in a variety of ways. In this hands-on lab, you will have the opportunity to work with Kafka configurations by making some changes to the configuration of an existing topic. You will also work with global broker configuration by changing some default topic configuration values that will be used for new topics.
+
+Objectives
+Successfully complete this lab by achieving the following learning objectives:
+
+Enable `unclean.leader.election` for the `inventory_purchases` Topic
+
+Set unclean.leader.election.enable to true for the topic:
+kafka-configs --zookeeper localhost:2181 --entity-type topics --entity-name inventory_purchases --alter --add-config unclean.leader.election.enable=true
+Set a 3-Day Retention Period for the Cluster Default and the Existing `inventory_purchases` Topic
+
+Set the default retention period for the cluster to 259200000 ms:
+kafka-configs --bootstrap-server localhost:9092 --entity-type brokers --entity-default --alter --add-config log.retention.ms=259200000
+Set the retention period for the topic to 259200000 ms:
+kafka-configs --zookeeper localhost:2181 --entity-type topics --entity-name inventory_purchases --alter --add-config retention.ms=259200000
