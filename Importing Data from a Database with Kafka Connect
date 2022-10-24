@@ -1,0 +1,41 @@
+Description
+Kafka Connect provides a framework for moving data between Kafka and other systems. Moreover, a variety of useful connectors already exist to make this process even easier for common use cases. In this hands-on lab, you will have the opportunity to use Kafka Connect to ingest data from an external database into Kafka. You will use the Java Database Connectivity (JDBC) Connector to automatically load data from a table in a PostgreSQL database into a Kafka topic.
+
+Objectives
+Successfully complete this lab by achieving the following learning objectives:
+
+Create a Connector to Load Data from the Database into Kafka
+
+Create a JDBC connector to load data from the PostgreSQL database.
+curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d '{
+  "name": "jdbc_source_postgres",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+    "connection.url": "jdbc:postgresql://10.0.1.102:5432/inventory",
+    "connection.user": "kafka",
+    "connection.password": "Kafka!",
+    "topic.prefix": "postgres-",
+    "mode":"timestamp",
+    "timestamp.column.name": "update_ts"
+  }
+}'
+List the topic. We should see a new topic called postgres-purchases.
+kafka-topics --bootstrap-server localhost:9092 --list
+Start a console consumer to read from the postgres-purchases topic:
+kafka-console-consumer --bootstrap-server localhost:9092 --topic postgres-purchases --from-beginning
+Note: We should see a series of records loaded from the database. Leave the consumer running so we can observe what happens when inserting a new record into the PostgreSQL table.
+
+Insert a New Record for a Purchase of Plums and Observe What Happens to the Topic as a Result
+
+Log in to the PostgreSQL database server.
+
+Change to the postgres user and connect to the inventory database:
+
+sudo -i -u postgres
+
+psql
+
+\c inventory;
+Insert a new record into the purchases table:
+insert into purchases (product, quantity, purchase_time, update_ts) VALUES ('plums', 8, current_timestamp, current_timestamp);
+Note: If we leave the console consumer running, we should see a new record appear in the postgres-purchases topic containing the data we just inserted.
