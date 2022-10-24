@@ -1,0 +1,31 @@
+Description
+Kafka Connect provides several connectors to help you move data to and from a variety of external sources. In this lab, you will implement a basic connector to copy Kafka data to a file on the local disk. This simple exercise will give you some hands-on experience interacting with Kafka Connect, and this introduction will prepare you to work with more advanced use cases.
+
+Objectives
+Successfully complete this lab by achieving the following learning objectives:
+
+Create a Connector to Export Data from the `inventory_purchases` Topic to a File
+
+Create a FileStreamSinkConnector:
+curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d '{
+  "name": "file_sink",
+  "config": {
+    "connector.class": "org.apache.kafka.connect.file.FileStreamSinkConnector",
+    "tasks.max": "1",
+    "file": "/home/cloud_user/output/output.txt",
+    "topics": "inventory_purchases",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter"
+  }
+}'
+We should see data from the topic appearing in the output file:
+cat /home/cloud_user/output/output.txt
+Publish a New Purchase of Plums to the `inventory_purchases` Topic
+
+Start up a console producer:
+kafka-console-producer --broker-list localhost:9092 --topic inventory_purchases
+Publish some data representing a purchase of plums:
+plums:5
+Check the file and verify that the purchase of plums shows up in the file data:
+cat /home/cloud_user/output/output.txt
+Note: It may take a few moments for the connector to process the new data.
