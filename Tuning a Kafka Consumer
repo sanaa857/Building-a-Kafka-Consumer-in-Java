@@ -1,0 +1,35 @@
+Description
+You can configure your Kafka consumers in a variety of ways in order to customize their behavior. In many production scenarios, ensuring your consumers perform well for your use case is a matter of tweaking consumer configurations. In this lab, we will work with this process hands-on. We will be provided with some consumer code and a list of issues that can be addressed by changing the consumer configuration. We will then need to identify what configuration changes should be made in order to address these issues, and we will need to implement those changes in the consumer.
+
+Objectives
+Successfully complete this lab by achieving the following learning objectives:
+
+Clone the Starter Project from GitHub and Perform a Test Run
+
+Clone the starter project from GitHub:
+
+cd ~/
+git clone https://github.com/linuxacademy/content-ccdak-consumer-tuning-lab.git
+Perform a test run to make sure the code is able to compile:
+
+cd content-ccdak-consumer-tuning-lab
+./gradlew run
+The code should compile, but the consumer will fail to run.
+
+Implement Configuration Changes to Address the Issues
+
+Edit the Consumer class:
+
+vi src/main/java/com/linuxacademy/ccdak/consumer/MemberSignupsConsumer.java
+Increase the minimum fetch size by setting fetch.min.bytes=1024:
+
+props.setProperty("fetch.min.bytes", "1024");
+Send heartbeats more frequently by setting heartbeat.interval.ms=2000:
+
+props.setProperty("heartbeat.interval.ms", "2000");
+Fix the issue with the offset reset behavior by setting auto.offset.reset=earliest:
+
+props.setProperty("auto.offset.reset", "earliest");
+Run your code to verify it still works:
+
+./gradlew run
