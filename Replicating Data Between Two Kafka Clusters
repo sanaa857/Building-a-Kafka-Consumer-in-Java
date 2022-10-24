@@ -1,0 +1,57 @@
+Description
+Kafka can be deployed in mutliple data centers in an "Active-Active", "Active-Passive", or centralized architecture. In this hands-on lab, we simulate an active-passive architecture in which data from one cluster is replicated to another cluster using a tool called Replicator. Replicator, like MirrorMaker, allows you to preserve topic configuration in the source cluster while replicating the messages from one cluster to another.
+
+Objectives
+Successfully complete this lab by achieving the following learning objectives:
+
+Start the Destination Cluster
+
+Start Zookeeper.
+
+bin/zookeeper-server-start etc/kafka/zookeeper.properties
+Start Kafka.
+
+bin/kafka-server-start etc/kafka/server.properties
+Start the Origin Cluster
+
+Make a copy of the configuration files.
+
+cp etc/kafka/zookeeper.properties /tmp/zookeeper_origin.properties
+cp etc/kafka/server.properties /tmp/server_origin.properties
+Change the port numbers for the origin cluster.
+
+sed -i -e "s/2181/2171/g" /tmp/zookeeper_origin.properties
+sed -i -e "s/9092/9082/g" /tmp/server_origin.properties
+sed -i -e "s/2181/2171/g" /tmp/server_origin.properties
+sed -i -e "s/#listen/listen/g" /tmp/server_origin.properties
+Change the data directory for the origin cluster.
+
+sed -i -e "s/zookeeper/zookeeper_origin/g" /tmp/zookeeper_origin.properties
+sed -i -e "s/kafka-logs/kafka-logs-origin/g" /tmp/server_origin.properties
+Start Zookeeper.
+
+bin/zookeeper-server-start /tmp/zookeeper_origin.properties
+Start Kafka.
+
+bin/kafka-server-start /tmp/server_origin.properties
+Create a Topic in the Source Cluster
+
+Create a topic named test-topic with 1 partition and a replication factor of 1.
+
+bin/kafka-topics --create --topic test-topic --replication-factor 1 --partitions 1 --zookeeper localhost:2171
+Run the Replicator Tool
+
+Run Kafka Connect in Standalone Mode and pass in the quickstart-replicator.properties file
+
+bin/connect-standalone etc/kafka/connect-standalone.properties etc/kafka-connect-replicator/quickstart-replicator.properties
+Produce and Verify Replication
+
+Verify that the topic was replicated to the destination cluster.
+
+bin/kafka-topics --describe --topic test-topic.replica --zookeeper localhost:2181
+Open a Console Producer and write to the topic test-topic in the source cluster.
+
+seq 10000 | bin/kafka-console-producer --topic test-topic --broker-list localhost:9082
+Confirm the messages were replicated by opening a console consumer to the destination cluster.
+
+bin/kafka-console-consumer --from-beginning --topic test-topic.replica --bootstrap-server localhost:9092
